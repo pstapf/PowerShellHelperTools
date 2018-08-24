@@ -13,7 +13,7 @@ Output column **ChangeType** will have the following values:<br/>
 * ObjectRemove
 <br/>
 Second step all changed properties of an still existing objects are show.<br/>
-Output column **ChangeType** will have the following values:
+Output column **ChangeType** will have the following values:<br/>
 * ValueAdd
 * ValueRemove
 * ValueModify
