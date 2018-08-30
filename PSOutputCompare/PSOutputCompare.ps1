@@ -44,7 +44,7 @@ $objList = @()
 # Compare reference and difference file and check for added or removed objects
 $MasterObjects = $MasterConfig | select $objectIdentifierName,$NameAttribute
 $CurrentObjects = $CurrentConfig | select $objectIdentifierName,$NameAttribute
-$objectResultList = Compare-Object -ReferenceObject $MasterObjects -DifferenceObject $CurrentObjects
+$objectResultList = Compare-Object -ReferenceObject $MasterObjects -DifferenceObject $CurrentObjects -Property $objectIdentifierName
 
 # Go to the list of added or removed objects
 If ($objectResultList -ne $null)
@@ -53,7 +53,7 @@ If ($objectResultList -ne $null)
     {
         # Create output custom object
         $obj = New-Object -Type PSCustomObject
-        $obj | Add-Member -Type NoteProperty -Name "Name" -Value $objectResult.InputObject.$NameAttribute
+        $obj | Add-Member -Type NoteProperty -Name "Name" -Value $objectResult.$objectIdentifierName
         $obj | Add-Member -Type NoteProperty -Name "Property" -Value $null
 
         If ($objectResult.SideIndicator -eq "<=")
