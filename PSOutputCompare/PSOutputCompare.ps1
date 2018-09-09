@@ -42,12 +42,12 @@ $CurrentConfig = Import-Clixml -Path $DifferenceCLIXMLFile
 $objList = @()
 
 # Compare reference and difference file and check for added or removed objects
-$MasterObjects = $MasterConfig | select $objectIdentifierName,$NameAttribute
-$CurrentObjects = $CurrentConfig | select $objectIdentifierName,$NameAttribute
+$MasterObjects = $MasterConfig | Select-Object $objectIdentifierName,$NameAttribute
+$CurrentObjects = $CurrentConfig | Select-Object $objectIdentifierName,$NameAttribute
 $objectResultList = Compare-Object -ReferenceObject $MasterObjects -DifferenceObject $CurrentObjects -Property $objectIdentifierName
 
 # Go to the list of added or removed objects
-If ($objectResultList -ne $null)
+If ($null -ne $objectResultList)
 {
     foreach ($objectResult in $objectResultList)
     {
@@ -71,26 +71,27 @@ If ($objectResultList -ne $null)
 # Go to the list of all changes of already present objects
 Foreach ($config in $MasterConfig)
 {
-    # Get the list off all properties on a single object for object compare
-    $PropertyList = ($config | Get-Member | where { $_.MemberType -eq "Property" }).Name
-    $DiffObject = $CurrentConfig | where { $_.$objectIdentifierName -eq $config.$objectIdentifierName }
+    # Get the list off all properties (incl. NoteProperties) and on a single object for object compare
+    $PropertyList = ($config | Get-Member | Where-Object { $_.MemberType -eq "Property" }).Name
+    $PropertyList += ($config | Get-Member | Where-Object { $_.MemberType -eq "NoteProperty" }).Name
+    $DiffObject = $CurrentConfig | Where-Object { $_.$objectIdentifierName.ToString() -eq $config.$objectIdentifierName.ToString() }
 
     # Compare objects the exists in reference and difference file and show changes
-    If ($DiffObject -ne $null)
+    If ($null -ne $DiffObject)
     {
         Foreach ($property in $PropertyList)
         {
             # Convert properties with NULL value to string(NULL) to make it usable with compare-object.
-            if ($config.$property -eq $null) { $config.$property = "NULL" }
-            if ($DiffObject.$property -eq $null) { $DiffObject.$property = "NULL" }
+            if ($null -eq $config.$property) { $config.$property = "NULL" }
+            if ($null -eq $DiffObject.$property) { $DiffObject.$property = "NULL" }
 
             $result = Compare-Object -ReferenceObject $config.$property.ToString() -DifferenceObject $DiffObject.$property.ToString()
 
-            if ($result -ne $null)
+            if ($null -ne $result)
             {
                 # Create the output custom object with object changes
-                $oldvalue = ($result | where { $_.SideIndicator -eq "<=" }).InputObject
-                $newValue = ($result | where { $_.SideIndicator -eq "=>" }).InputObject
+                $oldvalue = ($result | Where-Object { $_.SideIndicator -eq "<=" }).InputObject
+                $newValue = ($result | Where-Object { $_.SideIndicator -eq "=>" }).InputObject
 
                 $obj = New-Object -Type PSCustomObject
                 $obj | Add-Member -Type NoteProperty -Name "Name" -Value $config.$NameAttribute
