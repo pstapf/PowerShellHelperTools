@@ -81,28 +81,31 @@ Foreach ($config in $MasterConfig)
     {
         Foreach ($property in $PropertyList)
         {
-            # Convert properties with NULL value to string(NULL) to make it usable with compare-object.
-            if ($null -eq $config.$property) { $config.$property = "NULL" }
-            if ($null -eq $DiffObject.$property) { $DiffObject.$property = "NULL" }
-
-            $result = Compare-Object -ReferenceObject $config.$property.ToString() -DifferenceObject $DiffObject.$property.ToString()
-
-            if ($null -ne $result)
+            if ($null -ne $property)
             {
-                # Create the output custom object with object changes
-                $oldvalue = ($result | Where-Object { $_.SideIndicator -eq "<=" }).InputObject
-                $newValue = ($result | Where-Object { $_.SideIndicator -eq "=>" }).InputObject
+                # Convert properties with NULL value to string(NULL) to make it usable with compare-object.
+                if ($null -eq $config.$property) { $config.$property = "NULL" }
+                if ($null -eq $DiffObject.$property) { $DiffObject.$property = "NULL" }
 
-                $obj = New-Object -Type PSCustomObject
-                $obj | Add-Member -Type NoteProperty -Name "Name" -Value $config.$NameAttribute
-                $obj | Add-Member -Type NoteProperty -Name "Property" -Value $property
-                if ($oldvalue -eq "NULL") { $changeType = "ValueAdd" }
-                if ($newvalue -eq "NULL") { $changeType = "ValueRemove" }
-                if ($oldvalue -ne "NULL" -and $newValue -ne "NULL") { $changeType = "ValueModify" }
-                $obj | Add-Member -Type NoteProperty -Name "ChangeType" -Value $changeType
-                $obj | Add-Member -Type NoteProperty -Name "OldValue" -Value $oldvalue
-                $obj | Add-Member -Type NoteProperty -Name "NewValue" -Value $newValue
-                $objList += $obj      
+                $result = Compare-Object -ReferenceObject $config.$property.ToString() -DifferenceObject $DiffObject.$property.ToString()
+
+                if ($null -ne $result)
+                {
+                    # Create the output custom object with object changes
+                    $oldvalue = ($result | Where-Object { $_.SideIndicator -eq "<=" }).InputObject
+                    $newValue = ($result | Where-Object { $_.SideIndicator -eq "=>" }).InputObject
+
+                    $obj = New-Object -Type PSCustomObject
+                    $obj | Add-Member -Type NoteProperty -Name "Name" -Value $config.$NameAttribute
+                    $obj | Add-Member -Type NoteProperty -Name "Property" -Value $property
+                    if ($oldvalue -eq "NULL") { $changeType = "ValueAdd" }
+                    if ($newvalue -eq "NULL") { $changeType = "ValueRemove" }
+                    if ($oldvalue -ne "NULL" -and $newValue -ne "NULL") { $changeType = "ValueModify" }
+                    $obj | Add-Member -Type NoteProperty -Name "ChangeType" -Value $changeType
+                    $obj | Add-Member -Type NoteProperty -Name "OldValue" -Value $oldvalue
+                    $obj | Add-Member -Type NoteProperty -Name "NewValue" -Value $newValue
+                    $objList += $obj      
+                }
             }
         }
     }
